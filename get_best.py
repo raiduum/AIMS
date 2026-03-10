@@ -107,7 +107,7 @@ def evaluate_once(ply_path: Path, real_volume: float, voxel_size: float, depth: 
         raise ValueError("Invalid mesh for volume")
 
     pred_volume = abs(float(mesh_tm.volume))
-    rel_err = abs(pred_volume - real_volume) / real_volume
+    rel_err = (abs(pred_volume - real_volume) / real_volume)*100
     runtime = time.perf_counter() - t0
 
     return rel_err, pred_volume, runtime

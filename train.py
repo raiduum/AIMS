@@ -1,7 +1,7 @@
 import subprocess
 from pathlib import Path
 
-DATASET_DIR = Path("/workspace/AIMS/samples")
+DATASET_DIR = Path("/home/.sms/mssoft/projects/AIMS/samples")
 TRIALS = 50
 
 samples = sorted(DATASET_DIR.glob("sample_*.ply"))
@@ -14,7 +14,7 @@ for ply in samples:
 
     cmd = [
         "python",
-        "/workspace/AIMS/get_best.py",
+        "/home/.sms/mssoft/projects/AIMS/get_best.py",
         "--i", str(prefix),
         "--n_trials", str(TRIALS),
         "--study_name", prefix.name,

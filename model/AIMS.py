@@ -277,7 +277,7 @@ class AIMS(nn.Module):
         raw_points = outputs["raw_points"]
         final_points = outputs["final_points"]
 
-        gt_volume = gt_volume.float().view(-1).to(final_points.device)
+        gt_volume = gt_volume.float().reshape(-1).to(final_points.device)
 
         # 1) differentiable proxy volume
         pred_volume_proxy = self.calcultate_volume(final_points)

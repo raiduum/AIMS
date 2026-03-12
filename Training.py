@@ -13,6 +13,9 @@ from torch.utils.data import DataLoader
 from model.RefineData import RefineData
 from model.AIMS import AIMS
 
+BASE_PATH = Path("/home/.sms/mssoft/projects/AIMS")
+SAMPLE_PATH = Path(BASE_PATH / "samples")
+
 def seed_worker(worker_id):
     cv2.setNumThreads(0)
     cv2.ocl.setUseOpenCL(False)
@@ -37,7 +40,7 @@ def setup():
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--i", help="Input image path")
+    ap.add_argument("--ns", help="num_samples_per_image")
     device, local_rank = setup()
 
     model = AIMS().to(device).to(memory_format=torch.channels_last)
@@ -54,12 +57,16 @@ def main():
         
 
     dataset = RefineData(
-            image_dir=(args.i),
+        image_dir = SAMPLE_PATH,
+        num_samples_per_image = int(args.ns),
+        image_size = (512, 512)
         )
-    gt_path = Path(args.i)
-    gt_path = Path(gt_path / "sample00.txt")
-    with open(gt_path, "r") as f:
-        gt_volume = float(f.read().strip())
+    stem_list = dataset.get_image_stem_list()
+    gt_volume = 0.0
+    for stem in stem_list:
+        gt_path = Path(SAMPLE_PATH / stem)
+        with open(str(gt_path)+ ".txt", "r") as f:
+            gt_volume = float(f.read().strip())
 
     sampler = torch.utils.data.distributed.DistributedSampler(dataset, shuffle=False)
     loader = DataLoader(
@@ -77,7 +84,7 @@ def main():
     optimizer.zero_grad(set_to_none=True)
     loss_dict= {}
     for step, sample in enumerate(loader, start=1):
-        image  = sample.to(device, non_blocking=True).to(memory_format=torch.channels_last)
+        image  = sample["image"].to(device, non_blocking=True).to(memory_format=torch.channels_last)
         loss_dict = model.module.train_step(step, image, gt_volume, model, optimizer, scheduler)
     if is_rank0:
         print(loss_dict)
